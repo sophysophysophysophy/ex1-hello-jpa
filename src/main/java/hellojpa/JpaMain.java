@@ -18,7 +18,7 @@ public class JpaMain {
         try {
             Member member = new Member();
             member.setId(1L);
-            member.setName("HelloA");       // 비영속
+            member.setUsername("HelloA");       // 비영속
 
             em.persist(member);         // 영속
 
