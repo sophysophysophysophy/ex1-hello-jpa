@@ -7,15 +7,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
-
+@Getter @Setter
 @Entity
-@TableGenerator(
-        name = "MEMBER_SEQ_GENERATOR",
-        table = "MY_SEQUENCES",   // 매핑할 데이터베이스 시퀀스 이름
-        pkColumnValue = "MEMBER_SEQ", allocationSize = 1)
 public class Member {
     @Id
-    @GeneratedValue(strategy = GenerationType.TABLE,
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,
             generator = "MEMBER_SEQ_GENERATOR")
     private Long id;
 
@@ -24,8 +20,13 @@ public class Member {
 
     private Integer age;     // Integer와 가장 적절한 숫자 타입이 DB column으로 생성됨
 
+    @ManyToOne  //단방향 연관관계
+    @JoinColumn(name = "TEAM_ID")
+    private Team team;
+
     @Enumerated(EnumType.STRING)
     private RoleType roleType;  // Enum은 DB에 없기 때문에 Enumerated annotation 적용하면 됨
+
 
     @Temporal(TemporalType.TIMESTAMP)   // 날짜 타입 매 (date, time, timestamp 중 선택 필)
     private Date createdDate;
