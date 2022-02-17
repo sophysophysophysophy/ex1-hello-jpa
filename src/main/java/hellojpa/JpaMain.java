@@ -17,36 +17,16 @@ public class JpaMain {
         tx.begin();
         try {
 
-//          팀 저장
-            Team team = new Team();
-            team.setName("TeamA");
-
-//            회원 저장
             Member member = new Member();
-            member.setUsername("member1");
-            member.setTeam(team);   // 단방향 연관관계 설정, 참조 저장
-
+            member.setUsername("hello");
             em.persist(member);
 
+            em.flush();
+            em.clear();
 
-//            조회
-            Member findMember = em.find(Member.class, member.getId());
+            Member findMember = em.getReference(Member.class, member.getId()); // select query 나가지 않음! 프록시객체 반환됨
+            System.out.println("findMember.getId() = " + findMember.getId()); // 이 시점에 select query 나감!
 
-//            참조를 사용해서 연관관계 조회
-            Team findTeam = findMember.getTeam();
-
-// 연관관계 수정
-//            새로운 팀B
-            Team teamB = new Team();
-            team.setName("teamB");
-            em.persist(teamB);
-
-//            회원1에 새로운 팀B 설정
-            member.setTeam(teamB);
-
-
-//            em.detach(member);          // 준영속
-//            em.remove(member);          //삭제
 
             tx.commit();
         } catch (Exception e) {
