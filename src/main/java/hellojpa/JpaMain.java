@@ -1,5 +1,8 @@
 package hellojpa;
 
+import hellojpa.highLevelMapping.Book;
+import hellojpa.highLevelMapping.Item;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -17,20 +20,29 @@ public class JpaMain {
         tx.begin();
         try {
             Member member = new Member();
-            member.setId(1L);
+//            member.setId(1L);
             member.setUsername("HelloA");       // 비영속
 
-            em.persist(member);         // 영속
 
-//            em.detach(member);          // 준영속
-//            em.remove(member);          //삭제
+            Member member1 = new Member();
+            Member member2 = new Member();
+            member1.setUsername("HelloB");
+            member2.setUsername("helloC");
 
+            Book book = new Book();
+            book.setAuthor("정현주");
+
+            Item item = new Item();
+            em.persist(item);
+            member.setBook(book);
+            em.persist(book);
+            em.persist(member);
             tx.commit();
         } catch (Exception e) {
             tx.rollback();
         } finally {
-            em.close();
-            emf.close();
+//            em.close();
+//            emf.close();
 
         }
 
