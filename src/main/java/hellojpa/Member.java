@@ -20,7 +20,7 @@ public class Member {
 
     private Integer age;     // Integer와 가장 적절한 숫자 타입이 DB column으로 생성됨
 
-    @ManyToOne  //단방향 연관관계
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TEAM_ID")
     private Team team;
 
