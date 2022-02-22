@@ -4,9 +4,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 public class JpaMain {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
 
 //        application loading 시점에 하나만 만들어놔야함
        EntityManagerFactory emf = Persistence.createEntityManagerFactory("hello");
@@ -16,38 +20,56 @@ public class JpaMain {
         EntityTransaction tx = em.getTransaction();
         tx.begin();
         try {
-            Address address = new Address("city", "street", "zipCode");
             Member member = new Member();
-            member.setUsername("hello");
-            member.setHomeAddress(address);
+            member.setUsername("member1");
+            member.setHomeAddress(new Address("homeCity", "street", "10000"));
+
+            member.getFavoriteFoods().add("치킨");
+            member.getFavoriteFoods().add("족발");
+            member.getFavoriteFoods().add("피자");
+
+            member.getAddressHistory().add(new Address("old1", "stree1", "20000"));
+            member.getAddressHistory().add(new Address("old2", "stree2", "30000"));
             em.persist(member);
 
-            Address address1 = new Address(address.getCity(), address.getStreet(), address.getZipCode());
-            Member member1 = new Member();
-            member.setUsername("member1");
-            member1.setHomeAddress(address1);  // 이렇게 새로 만들어서 세팅해주기!
-            em.persist(member1);
-
-//            Address a = new Address("Old");
-//            Address b = a ;  // 객체 타입은 참조를 전달
-//            b.setCity("New");
-
-            int a = 10;
-            int b = 10;
-            System.out.println(a == b ); // true
-
-            Address addressOne = new Address("city", "street", "100000");
-            Address addressTwo = new Address("city", "street", "100000");
-            System.out.println(addressOne.equals(addressTwo));  // true
-
-            em.flush();
-            em.clear();
-
-            Member findMember = em.getReference(Member.class, member.getId()); // select query 나가지 않음! 프록시객체 반환됨
-            System.out.println("findMember.getId() = " + findMember.getId()); // 이 시점에 select query 나감!
-
-
             tx.commit();
+
+            Member findMember = em.find(Member.class, member.getId());
+            // 이 때 member 객체는 컬렉션 값 타입 가지고 있지 않음 (지연로딩)
+
+            List<Address> addressHistory = findMember.getAddressHistory();
+            for (Address address : addressHistory) {
+                System.out.println("address = " + address);
+            }
+
+            Set<String> favoriteFoods = findMember.getFavoriteFoods();
+            for (String food : favoriteFoods) {
+                System.out.println("food = " + food);
+            }
+
+
+        // 값 타입 수정
+        //findMember.getHomeAddress().setCity("city");  // 이렇게 수정하면 문제 발생 가능. 변경 불가한 객체로 생성해야 함
+        //
+        //값 타입은 통으로 새로 갈아끼워넣어야 함 ! (교체)
+        Address oldAddress = findMember.getHomeAddress();
+        findMember.setHomeAddress(new Address("new City", oldAddress.getStreet(), oldAddress.getZipCode()));
+
+        // 값타입 컬렉션 수정
+
+        //치킨 -> 한식 변경
+        //업데이트 불가. 통째로 교체해야함
+        //컬렉션 값만 변경되어도 insert, delete query 날아감. 영속성 전이
+        findMember.getFavoriteFoods().remove("치킨");
+        findMember.getFavoriteFoods().remove("한식");
+
+        //주소 변경
+        //컬렉션에서는 기본적으로 equals()를 통해 같은 객체 찾아냄.
+        //따라서 equals() 재정의가 매우!! 중요함!
+        findMember.getAddressHistory().remove(new Address("old1", oldAddress.getStreet(), oldAddress.getZipCode()));
+        findMember.getAddressHistory().add(new Address("new City1", oldAddress.getStreet(), oldAddress.getZipCode()));
+
+
         } catch (Exception e) {
             tx.rollback();
         } finally {
@@ -56,6 +78,17 @@ public class JpaMain {
 
         }
 
+
+        Address address = new Address("city", "street", "zipCode");
+        Field field = address.getClass().getDeclaredField("city");
+        field.setAccessible(true);
+        field.set(address, "new City");
+
+        System.out.println(address.getCity());
+//        System.out.println("fields = " + fields);
+
+//        Field city = address.getClass().getField("city");
+//        city.setAccessible(true);
 
     }
 }

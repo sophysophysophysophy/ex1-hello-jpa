@@ -9,6 +9,8 @@ public class Address {
     private String street;
     private String zipCode;
 
+    public Address() {}
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
