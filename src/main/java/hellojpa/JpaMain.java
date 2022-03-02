@@ -1,9 +1,12 @@
 package hellojpa;
 
+import org.springframework.data.jpa.repository.query.JpaQueryMethodFactory;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import java.util.List;
 
 public class JpaMain {
     public static void main(String[] args) {
@@ -48,6 +51,19 @@ public class JpaMain {
 //            em.detach(member);          // 준영속
 //            em.remove(member);          //삭제
 
+
+
+//            JPQL
+//            select m from Member m where m.age > 18
+//            JPAQueryFactory query = new JPAQueryFactory(em);
+//            QMember m  = QMember.member;
+//
+//            List<Member> list = query.selectFrom(m)
+//                  .where(m.age.gt(18))
+//                  .orderBy(m.name.desc())
+//                  .fetch();
+            String sql = "SELECT ID, AGE, TEAM_ID, NAME FROM MEMBER WHERE NAME = 'kim";
+            List resultList = em.createNativeQuery(sql, Member.class).getResultList();
             tx.commit();
         } catch (Exception e) {
             tx.rollback();
