@@ -82,6 +82,39 @@ public class JpaMain {
                     .setMaxResults(20)
                     .getResultList();
 
+//            내부 조인
+            String joinQuery = "select m from Member m inner join m.team t";
+            List<Member> memberList = em.createQuery(joinQuery, Member.class)
+                    .getResultList();
+
+//            외부 조인
+            String joinQuery1 = "select m from Member m left join m.team t";
+            List<Member> memberList1 = em.createQuery(joinQuery, Member.class)
+                    .getResultList();
+
+//            세타 조인
+            String joinQuery2 = "select m from Member m, Team t where m.username = t.name";
+            List<Member> memberList2 = em.createQuery(joinQuery, Member.class)
+                    .getResultList();
+
+//            팀A 소속인 회원
+            em.createQuery("SELECT m FROM Member m WHERE EXISTS (SELECT t FROM m.team t WHERE t.name = '팀A')");
+//            전체 상품 각각의 재고보다 주문량이 많은 주문들
+            em.createQuery("SELECT o FROM Order o WHERE o.orderAmount> ALL (SELECT p.stockAmount FROM Product p )");
+//            어떤 팀이든 팀에 소속된 회원
+            em.createQuery("SELECT m FROM Member m WHERE m.team = ANY(SELECT t FROM Team t)");
+
+//            enum
+            em.createQuery("SELECT m FROM Member m WHERE m.memberType = jpql.MemberType.USER");
+//            파라미터 바인딩으로 패키지명 없이 깔끔하게 작성 가능
+            String queryEnum = "SELECT m FROM Member m WHERE m.memberType = :userType";
+            List userTypeResult = em.createQuery(queryEnum)
+                    .setParameter("userType", MemberType.USER)
+                    .getResultList();
+
+//            entity type
+//            em.createQuery("SELECT i FROM Item i WHERE type(i) = Book", Item.class).getResultList();
+
             tx.commit();
         } catch (Exception e) {
             tx.rollback();

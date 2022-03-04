@@ -10,7 +10,10 @@ public class Member {
     private String username;
     private int age;
 
-    @ManyToOne
+    @Enumerated(value = EnumType.ORDINAL)
+    private MemberType memberType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "TEAM_ID")
     private Team team;
 
@@ -21,6 +24,19 @@ public class Member {
                 ", username='" + username + '\'' +
                 ", age=" + age +
                 '}';
+    }
+
+    public void changeTeam(Team team) {
+        this.team = team;
+        team.getMembers().add(this);
+    }
+
+    public MemberType getMemberType() {
+        return memberType;
+    }
+
+    public void setMemberType(MemberType memberType) {
+        this.memberType = memberType;
     }
 
     public Long getId() {
