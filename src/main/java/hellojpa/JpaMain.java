@@ -1,10 +1,15 @@
 package hellojpa;
 
+import org.hibernate.Criteria;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Parent;
 import org.hibernate.jpa.internal.PersistenceUnitUtilImpl;
 
 import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import java.util.List;
 
 public class JpaMain {
     public static void main(String[] args) {
@@ -18,43 +23,34 @@ public class JpaMain {
         tx.begin();
         try {
 
-            Member member = new Member();
-            member.setUsername("hello");
-            em.persist(member);
+//            JPQL
+            String jpql = "select m From Member m where m.username like '%hello%'";
+            List<Member> result  = em.createQuery(jpql, Member.class)
+                    .getResultList();
 
-            em.flush();
-            em.clear();
-
-            Member findMember = em.getReference(Member.class, member.getId()); // select query 나가지 않음! 프록시객체 반환됨
-            System.out.println("findMember.getId() = " + findMember.getId()); // 이 시점에 select query 나감!
-
-            // 프록시 객체 초기화
-            Member member1 = em.getReference(Member.class, "id1");
-            member1.getUsername();
-
-//            프록시 인스턴스 초기화 여부 확인
-            System.out.println(emf.getPersistenceUnitUtil().isLoaded(member1));
-
-//            프록시 클래스 확인 방법
-            System.out.println(member1.getClass().getName());
-
-//            프록시 강제 초기화
-            Hibernate.initialize(member1);
+            String jpql2 = "select m From Member m where m.age > 18";
+            List<Member> result2  = em.createQuery(jpql2, Member.class)
+                    .getResultList();
 
 
-            Member memberLazy = new Member();
-            memberLazy.getTeam().getName(); // 이 때 team 초기화됨 (DB 조회)
+//            Criteria
+//            Criteria 사용 준비
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Member> query = cb.createQuery(Member.class);
 
+//            루트 클래스 (조회를 시작할 클래스)
+            Root<Member> m = query.from(Member.class);
 
-//            Parent parent = em.find(Parent.class, id);
-//            parent.getChildren().remove(0); //자식 엔티티를 컬렉션에서 제거 -> 바로 해당 오펀 객체 DB에서 DELETE됨
+//            쿼리 생성
+            CriteriaQuery<Member> cq = query.select(m).where(cb.equal(m.get("username"), "kim"));
+            List<Member> resultList = em.createQuery(cq).getResultList();
 
             tx.commit();
         } catch (Exception e) {
             tx.rollback();
         } finally {
-//            em.close();
-//            emf.close();
+            em.close();
+            emf.close();
 
         }
 

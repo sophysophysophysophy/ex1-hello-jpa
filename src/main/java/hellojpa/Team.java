@@ -14,5 +14,5 @@ public class Team {
     @Column
     private String name;
 
-    private Member member;
+//    private Member member;
 }
